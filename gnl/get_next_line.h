@@ -1,25 +1,23 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   fdf.h                                              :+:      :+:    :+:   */
+/*   get_next_line.h                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: cbeltrao <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2018/08/06 18:02:08 by cbeltrao          #+#    #+#             */
-/*   Updated: 2018/08/07 15:23:33 by cbeltrao         ###   ########.fr       */
+/*   Created: 2018/08/07 15:17:01 by cbeltrao          #+#    #+#             */
+/*   Updated: 2018/08/07 15:17:02 by cbeltrao         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef FDF_H
-# define FDF_H
-# define WIN_HEIGHT 600
-# define WIN_WIDTH 1200
-# define SCALE(x) (10 * x)
+#ifndef GET_NEXT_LINE_H
+# define GET_NEXT_LINE_H
+# include <stdlib.h>
+# include <unistd.h>
 
-typedef struct	s_2dpoint
-{
-	int x;
-	int y;
-}				t_2dpoint;
+# define BUFF_SIZE 32
+# define MAX_NUM_FILES 8192
+
+int		get_next_line(const int fd, char **line);
 
 #endif
