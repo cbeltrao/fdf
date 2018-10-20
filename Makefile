@@ -6,7 +6,7 @@
 #    By: cbeltrao <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2018/08/01 13:31:36 by cbeltrao          #+#    #+#              #
-#    Updated: 2018/08/01 15:04:06 by cbeltrao         ###   ########.fr        #
+#    Updated: 2018/10/20 22:59:12 by cbeltrao         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -29,7 +29,7 @@ LFLAGS = -L ./minilibx_macos
 LIBS = -lmlx
 
 # define the C source files
-SRCS = main.c
+SRCS = main.c libft/*.c gnl/*.c
 
 # define the C objects files
 OBJS = $(SRCS:.c=.o)

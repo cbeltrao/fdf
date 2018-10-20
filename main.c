@@ -6,7 +6,7 @@
 /*   By: cbeltrao <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/01 11:54:03 by cbeltrao          #+#    #+#             */
-/*   Updated: 2018/09/26 19:19:36 by cbeltrao         ###   ########.fr       */
+/*   Updated: 2018/10/20 23:42:56 by cbeltrao         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,13 +15,10 @@
 #include "fdf.h"
 #include <math.h>
 #include <stdlib.h>
+#include <fcntl.h>
 #include "gnl/get_next_line.h"
+#include "libft/includes/libft.h"
 #include <unistd.h>
-
-void	ft_putchar(char c)
-{
-	write(1, &c, 1);
-}
 
 int		deal_key(int key, void *param)
 {
@@ -178,26 +175,46 @@ void	draw_grid(void *mlx_ptr, void *win_ptr, int grid[4][6])
 	}
 }
 
-int		**grid_add_line(int	**map_grid,	char *line, int i,int line_len)
+int		*grid_add_line(char *line, int line_len)
 {
 	char	**tmp;
-	int		j;
+	int		*map_line;
+	int		i;
 
-	line_len = ft_strlen(line);
-	j = 0;
-	if(!line || !map_grid)
-		return (void);
-	tmp = ft_strsplit(line, ' ');
-	*(map_grid + i) = (int *)malloc((sizeof int) * line_len);
+	i = 0;
+	if(!line || !(tmp = ft_strsplit(line, ' ')))
+		return (NULL);
+	// Counting how many strings("ints") there are in total
+	// So we can know what to allocate
+	// for the size of each int array in the matrix 
+	(void) line_len;
+	while(*(tmp + i))
+		i++;
+	map_line = (int *)malloc((sizeof(int)) * i);
+
+	i = 0;
 	while(*tmp)
 	{
-		map_grid[i][j] = ft_atoi(*tmp++);	
-		printf("map_grid[i][j]: %d", map_grid[i][j]);
-		j++;
+		map_line[i] = ft_atoi(*tmp++);	
+		printf("%d  ", map_line[i]);
+		i++;
 	}
-	/* Print test */
-	
-	return (map_grid);
+	printf("\n");
+	return (map_line);
+}
+
+int		line_count(char *map_name)
+{
+	int lines;
+	char *line;
+	int fd;
+
+	lines = 0;
+	fd = open(map_name, O_RDONLY);
+	while (get_next_line(fd, &line))
+		lines++;
+	close(fd);
+	return (lines);
 }
 
 int		**read_map(char *map_name)
@@ -207,47 +224,75 @@ int		**read_map(char *map_name)
 	char	*line;
 	int		**map_grid;
 	int		len;
+	// Testing variables
+	//int		test_grid_i = 0;
+	//int		test_grid_j = 0;
 
-	fd = open(map_name, O_RDONLY);
-	line_nbr = 0;
-	while (get_next_line(fd, &line))
-		line_nbr++;
-	close(fd);
-	map_grid = (int **)malloc((sizeof int*) * line_nbr);
+	// Get the numbers of line so we can allocate the depth of the int matrix 
+	line_nbr = line_count(map_name);
+	if(!(map_grid = (int **)malloc(sizeof(int*) * line_nbr)))
+		return (NULL);
+
+	// Now we need to allocate memory for each array of the matrix 
+	// According to the number of elements in the map
+	// If the input is correct the number of elements will be (len + 1)/2,
+	// Because every 2 elements are separated by 1 white space.
 	fd = open(map_name, O_RDONLY);	
 	line_nbr = 0;
+	// We can check for line length differences in this loop
+	// We also need to check for incorrect inputs
 	while (get_next_line(fd, &line))
 	{
 		len = ft_strlen(line);
-		map_grid = grid_add_line(map_grid, line, line_nbr, len);
+	   	map_grid[line_nbr] = grid_add_line(line, len);
 		line_nbr++;
-	}
-	close(fd);
-	fd = 0;
-	while(line_nbr > 0)
-	{
-		while(fd < len)
+   	}
+   	// At this point we should have a int matrix filled 
+	// with every element of the map close(fd); 
+	// ??? Testing printing matrix 
+	/*
+	while(test_grid_i < line_nbr)
+   	{
+		test_grid_j = 0;
+		while(test_grid_j < (len / 2) + 1)
 		{
-			printf("%d," map_grid[line_nbr][fd]); 
-			fd++;
+			printf("map_grid[test_grid_i:%d][test_grid_j:%d]: %d\n", 
+					test_grid_i, test_grid_j, map_grid[test_grid_i][test_grid_j]);
+			fflush(stdout);
+			test_grid_j++;
 		}
-		printf("\n");
-		line_nbr++;
+		printf("##OPA\n");
+		fflush(stdout);
+		test_grid_i++;
 	}
+	*/
+	return (map_grid);
 }
+
 int main()
 {
 	void		*mlx_ptr;
 	void		*win_ptr;
+	// Testing variables
+	//char		*numbers = "0 1 2 3 4";
 	int			line[4][6] =  { {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0},
 	   							{0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0} };
+	int		**test_map;
 
 	/* Initialize connection with graphical server */
-	mlx_ptr = mlx_init();
+	//	mlx_ptr = mlx_init();
 
-	/* Initialize a window */
+	// Testing grid_add_line Function
+		(void)line;
+		(void)win_ptr;	
+		(void)mlx_ptr;
+	//	numbers_atoi = grid_add_line(numbers, ft_strlen(numbers));
+	
+	//	Testing read_map functino
+	test_map = read_map("test_maps/42.fdf");
+	// Initialize a window 
+	/*
 	win_ptr = mlx_new_window(mlx_ptr, WIN_WIDTH, WIN_HEIGHT, "FdF");
-
 	draw_grid(mlx_ptr, win_ptr, line); // Grid setup and print
 
 	mlx_string_put(mlx_ptr, win_ptr, 400,300, 0XFF00FF, "Belo chupa rola"); // Print string
@@ -256,7 +301,8 @@ int main()
 
 	mlx_mouse_hook(win_ptr, deal_key, (void *)0); // Watch for mouse inputs
 
-	/* Listen for events */
+	//Listen for events 
 	mlx_loop(mlx_ptr);
+	*/
 	return (0);
 }
