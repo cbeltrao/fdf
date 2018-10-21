@@ -6,7 +6,7 @@
 /*   By: cbeltrao <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/01 11:54:03 by cbeltrao          #+#    #+#             */
-/*   Updated: 2018/10/21 17:35:22 by cbeltrao         ###   ########.fr       */
+/*   Updated: 2018/10/21 23:37:16 by cbeltrao         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 #include "gnl/get_next_line.h"
 #include "libft/includes/libft.h"
 #include <unistd.h>
+#define DEPTH_OF(x) (sizeof(x)/sizeof(x[0])
 
 int		deal_key(int key, void *param)
 {
@@ -29,10 +30,12 @@ int		deal_key(int key, void *param)
 }
 
 /* Set point variables */
-void	set_point(t_2dpoint *point, int x, int y)
+t_2dpoint	set_point(int x, int y)
 {
-	point->x= x;
-	point->y = y;
+	t_2dpoint temp;
+	temp.x= x;
+	temp.y = y;
+	return temp;
 }
 
 void	ft_swap(int *a, int *b)
@@ -43,6 +46,8 @@ void	ft_swap(int *a, int *b)
 	*b = tmp;
 }
 
+
+// Bresenhams functions are too long and have to may variables - redo
 /* Bresenhams Algorithm to draw a line dy being the dominant axis*/
 void	draw_line_da_y(void *mlx_ptr, void *win_ptr,
 	   	t_2dpoint initial_p, t_2dpoint final_p)
@@ -135,72 +140,85 @@ int		draw_line(void *mlx_ptr, void *win_ptr, t_2dpoint initial_p,
 	return (0);
 }
 
-void	draw_grid(void *mlx_ptr, void *win_ptr, int grid[4][6])
+int		draw_grid(void *mlx_ptr, void *win_ptr, t_map *map)
 {
 	int	scale;
 	int i;
 	int j;
-	int grid_width = 6;
+
+	/* Useless variables since i'm now using the struct
+	* and can gather all information from there
+	int grid_width = DEPTH_OF(grid);
 	int grid_height = 4;
 	t_2dpoint	grid_points[sizeof(grid[0])/sizeof(grid[0][0])]
 							[sizeof(grid[1])/sizeof(grid[1][0])];
+	*/
 
 	scale = 50;
 	i = 0;
 	j = 0;
-	
+	if(!(map->coord_grid = (t_2dpoint **)malloc(sizeof(t_2dpoint *) * map->depth)))
+		return (INVAL_MEM_ERROR);
 	// Set up grid
-	while (i < grid_height)
+	printf("MAP DEPTH: %d || mAP LENGTH: %d \n\n\n", map->depth, map->length);
+	while (i < map->depth)
 	{
+		if(!(map->coord_grid[i] = (t_2dpoint *)malloc(sizeof(t_2dpoint) * map->length)))
+			return(INVAL_MEM_ERROR);
 		j = 0;
-		while (j < grid_width)
+		while (j < map->length)
 		{
+			fflush(stdout);
+			printf("OPAENTROU\n");
+			fflush(stdout);
 			// Sets X,Y if it's the first point of a line
 			if (j == 0)
-				set_point(&grid_points[i][j], WIN_WIDTH / 3, (WIN_HEIGHT / 3 + scale * i ));
+				map->coord_grid[i][j] = set_point(WIN_WIDTH / 3, (WIN_HEIGHT / 3 + scale * i ));
 			// Now every following point will be based on the precedent X,Y
-			else
+			else if (j > 0)
 			{
 				// Set point on grid(scaled)
-				set_point(&grid_points[i][j], grid_points[i][j - 1].x + scale, grid_points[i][0].y);
+				map->coord_grid[i][j] = set_point(map->coord_grid[i][j - 1].x + scale, map->coord_grid[i][0].y);
 				// Draw lines
-				draw_line(mlx_ptr, win_ptr, grid_points[i][j - 1], grid_points[i][j]);
+				draw_line(mlx_ptr, win_ptr, map->coord_grid[i][j - 1], map->coord_grid[i][j]);
 			}
 			// Draw columns
 			if (i != 0)
-				draw_line(mlx_ptr, win_ptr, grid_points[i - 1][j], grid_points[i][j]);
+				draw_line(mlx_ptr, win_ptr, map->coord_grid[i - 1][j], map->coord_grid[i][j]);
+			printf("'i: %d', 'j: %d', x:%d, y:%d   \n", i, j, map->coord_grid[i][j].x, map->coord_grid[i][j].y);
 			j++;
 		}
+		printf("\n");
 		i++;
 	}
+	printf("SAIU GAROTO\n");
+	return (0);
 }
 
-int		*grid_add_line(char *line, int line_len)
+int		grid_add_line(t_map *map, char *line, int line_nbr)
 {
 	char	**tmp;
-	int		*map_line;
 	int		i;
 
 	i = 0;
 	if(!line || !(tmp = ft_strsplit(line, ' ')))
-		return (NULL);
+		return (INVAL_MEM_ERROR);
 	// Counting how many strings("ints") there are in total
 	// So we can know what to allocate
 	// for the size of each int array in the matrix 
-	(void) line_len;
 	while(*(tmp + i))
 		i++;
-	map_line = (int *)malloc((sizeof(int)) * i);
-
+	map->length = i;
+	if(!(map->map_grid[line_nbr] = (int *)malloc((sizeof(int)) * map->length)))
+		return (INVAL_MEM_ERROR);
 	i = 0;
 	while(*tmp)
 	{
-		map_line[i] = ft_atoi(*tmp++);	
-		printf("%d  ", map_line[i]);
+		map->map_grid[line_nbr][i] = ft_atoi(*tmp++);	
 		i++;
 	}
-	printf("\n");
-	return (map_line);
+	// DONT FORGET TO FREE TMP AND ITS INSIDES
+	return (0);
 }
 
 int		line_count(char *map_name)
@@ -217,66 +235,91 @@ int		line_count(char *map_name)
 	return (lines);
 }
 
-int		**read_map(char *map_name)
+// Does the parsing from .fdf to int ** and stores it into t_map *map
+int		read_map(char *map_name, t_map *map)
 {
 	int		fd;
 	int		line_nbr;
 	char	*line;
-	int		**map_grid;
-	int		len;
+	//int		len;
 
-	// Get the numbers of line so we can allocate the depth of the int matrix 
-	line_nbr = line_count(map_name);
-	if(!(map_grid = (int **)malloc(sizeof(int*) * line_nbr)))
-		return (NULL);
-
-	// Now we need to allocate memory for each array of the matrix 
-	// According to the number of elements in the map
-	// If the input is correct the number of elements will be (len + 1)/2,
-	// Because every 2 elements are separated by 1 white space.
+	line_nbr = line_count(map_name);	// Get the number of lines in map file
+	map->depth = line_nbr; 				// Depth of matrix = number of lines in map file
+	if(!(map->map_grid = (int **)malloc(sizeof(int*) * line_nbr)))
+		return (INVAL_MEM_ERROR);
 	if((fd = open(map_name, O_RDONLY)) < 0)	
-		return (NULL);
+		return (INVAL_MAP_ERROR);
 	line_nbr = 0;
-	// We can check for line length differences in this loop
-	// We also need to check for incorrect inputs
-	while (get_next_line(fd, &line))
+
+	// In this loop we can(if not here somewhere else)
+	// check for erros like wrong input
+	// Or different sized lines
+	while (get_next_line(fd, &line))	// Allocate memory for each row in map->map_grid[x]
 	{
-		len = ft_strlen(line);
-	   	map_grid[line_nbr] = grid_add_line(line, len);
+	   	grid_add_line(map, line, line_nbr);
 		line_nbr++;
    	}
-   	// At this point we should have a int matrix filled 
-	// with every element of the map close(fd); 
-	return (map_grid);
+	close(fd); 
+	return (0); }
+
+
+void	TEST_print_map(t_map *map) // Test if parsing(.fdf ~ map->map_grid was successful
+{
+	int i;
+	int j;
+
+	i = 0;
+	j = 0;
+	while(i < map->depth)
+	{
+		j = 0;
+		while(j < map->length)
+		{
+			printf("%d  ", map->map_grid[i][j]);
+			j++;
+		}
+		printf("\n");
+		i++;
+	}
 }
 
-int main()
+	// Responsible for setting up the t_map structure
+	// Which should contain:
+	// .fdf map parsed to a int ** matrix map,
+	// The length and depth of the matrix
+	// And int ** coordinates matrix containing x, y positions for
+	// each element in the matrix map, so we can send the coordinates 
+	// matrix to the draw_grid function
+
+int		set_map(void *mlx_ptr, void *win_ptr, char *map_name)
+{
+	t_map *map;	
+
+	if(!(map = (t_map *)malloc(sizeof(t_map))) || !map_name) 
+		return (INVAL_MEM_ERROR);
+	read_map(map_name, map);
+	draw_grid(mlx_ptr, win_ptr, map);
+	/*-- Testing Functions --*/
+	TEST_print_map(map);
+	/*-- end of testing functions --*/
+	return (0);
+}
+
+int main(int argc, char **argv)
 {
 	void		*mlx_ptr;
 	void		*win_ptr;
-	// Testing variables
-	//char		*numbers = "0 1 2 3 4";
-	int			line[4][6] =  { {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0},
-	   							{0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0} };
-	int		**test_map;
 
-	/* Initialize connection with graphical server */
-	//	mlx_ptr = mlx_init();
+	(void)argc;	
+	mlx_ptr = mlx_init();	// Initialize Connection with graphical server
 
-	// Testing grid_add_line Function
-		(void)line;
-		(void)win_ptr;	
-		(void)mlx_ptr;
-	//	numbers_atoi = grid_add_line(numbers, ft_strlen(numbers));
-	
-	//	Testing read_map functino
-	test_map = read_map("test_maps/42.fdf");
-	// Initialize a window 
-	/*
-	win_ptr = mlx_new_window(mlx_ptr, WIN_WIDTH, WIN_HEIGHT, "FdF");
-	draw_grid(mlx_ptr, win_ptr, line); // Grid setup and print
+	win_ptr = mlx_new_window(mlx_ptr, WIN_WIDTH, WIN_HEIGHT, "FdF"); // Initialize Window
 
-	mlx_string_put(mlx_ptr, win_ptr, 400,300, 0XFF00FF, "Belo chupa rola"); // Print string
+	//-- Beginning of tests --//
+	set_map(mlx_ptr, win_ptr, argv[1]); // Parses .fdf to map and coord grids and prints it
+	//-- End of tests --//
+
+	mlx_string_put(mlx_ptr, win_ptr, 400,300, 0XFF00FF, "Belo chupa rola"); // Print string *test*
 
 	mlx_key_hook(win_ptr, deal_key, (void *)0); // Watch for keyboard inputs
 
@@ -284,6 +327,5 @@ int main()
 
 	//Listen for events 
 	mlx_loop(mlx_ptr);
-	*/
 	return (0);
 }
