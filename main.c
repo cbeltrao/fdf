@@ -6,7 +6,7 @@
 /*   By: cbeltrao <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/01 11:54:03 by cbeltrao          #+#    #+#             */
-/*   Updated: 2018/10/20 23:42:56 by cbeltrao         ###   ########.fr       */
+/*   Updated: 2018/10/21 17:35:22 by cbeltrao         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -224,9 +224,6 @@ int		**read_map(char *map_name)
 	char	*line;
 	int		**map_grid;
 	int		len;
-	// Testing variables
-	//int		test_grid_i = 0;
-	//int		test_grid_j = 0;
 
 	// Get the numbers of line so we can allocate the depth of the int matrix 
 	line_nbr = line_count(map_name);
@@ -237,7 +234,8 @@ int		**read_map(char *map_name)
 	// According to the number of elements in the map
 	// If the input is correct the number of elements will be (len + 1)/2,
 	// Because every 2 elements are separated by 1 white space.
-	fd = open(map_name, O_RDONLY);	
+	if((fd = open(map_name, O_RDONLY)) < 0)	
+		return (NULL);
 	line_nbr = 0;
 	// We can check for line length differences in this loop
 	// We also need to check for incorrect inputs
@@ -249,23 +247,6 @@ int		**read_map(char *map_name)
    	}
    	// At this point we should have a int matrix filled 
 	// with every element of the map close(fd); 
-	// ??? Testing printing matrix 
-	/*
-	while(test_grid_i < line_nbr)
-   	{
-		test_grid_j = 0;
-		while(test_grid_j < (len / 2) + 1)
-		{
-			printf("map_grid[test_grid_i:%d][test_grid_j:%d]: %d\n", 
-					test_grid_i, test_grid_j, map_grid[test_grid_i][test_grid_j]);
-			fflush(stdout);
-			test_grid_j++;
-		}
-		printf("##OPA\n");
-		fflush(stdout);
-		test_grid_i++;
-	}
-	*/
 	return (map_grid);
 }
 
