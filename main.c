@@ -6,7 +6,7 @@
 /*   By: cbeltrao <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/01 11:54:03 by cbeltrao          #+#    #+#             */
-/*   Updated: 2018/10/24 14:54:25 by cbeltrao         ###   ########.fr       */
+/*   Updated: 2018/10/24 16:16:44 by cbeltrao         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,11 +31,12 @@ int		deal_key(int key, void *param)
 }
 
 /* Set point variables */
-t_2dpoint	set_point(int x, int y)
+t_2dpoint	set_point(int x, int y, int z)
 {
 	t_2dpoint temp;
 	temp.x= x;
 	temp.y = y;
+	temp.z = z;
 	return temp;
 }
 
@@ -124,7 +125,7 @@ void	draw_line_da_x(void *mlx_ptr, void *win_ptr,
 	mlx_pixel_put(mlx_ptr, win_ptr, final_p.x, final_p.y, 0XFF00FF);
 }
 
-int		draw_line(void *mlx_ptr, void *win_ptr, t_2dpoint initial_p,
+int		draw_line(t_mlx *mlx, t_2dpoint initial_p,
 	   	t_2dpoint final_p)
 {
 	int dx;
@@ -135,44 +136,69 @@ int		draw_line(void *mlx_ptr, void *win_ptr, t_2dpoint initial_p,
 	dy = abs(final_p.y - initial_p.y);
 	dominant_axis = (dx > dy ? 'x' : 'y');
 	if (dominant_axis == 'x')
-		draw_line_da_x(mlx_ptr, win_ptr, initial_p, final_p);
+		draw_line_da_x(mlx->mlx_ptr, mlx->win_ptr, initial_p, final_p);
 	else
-		draw_line_da_y(mlx_ptr, win_ptr, initial_p, final_p);
+		draw_line_da_y(mlx->mlx_ptr, mlx->win_ptr, initial_p, final_p);
 	return (0);
 }
 
-int		draw_grid(void *mlx_ptr, void *win_ptr, t_map *map)
+void	fill_pixel(unsigned int *img, int x, int y, int z)
 {
-	int	scale;
+	if (x < WIDTH && y < HEIGHT && x >= 0 && y >= 0)
+	{
+		if (z < 0)
+			img[y * WIDTH + x] = 0x01013c;
+		else if (z == 0)
+			img[y * WIDTH + x] = 0xffffff;
+		else if (z <= 10)
+			img[y * WIDTH + x] = 0xffffdd;
+		else if (z <= 20)
+			img[y * WIDTH + x] = 0xffff51;
+		else if (z <= 25)
+			img[y * WIDTH + x] = 0xffff15;
+		else if (z <= 50)
+			img[y * WIDTH + x] = 0xff7d23;
+		else if (z <= 100)
+			img[y * WIDTH + x] = 0xff0051;
+		else
+			img[y * WIDTH + x] = 0xff140d;
+	}
+}
+
+int		draw_grid(t_mlx *mlx, t_map *map)
+{
 	int i;
 	int j;
 
-	scale = 20;
 	i = 0;
 	j = 0;
-	if(!(map->coord_grid = (t_2dpoint **)malloc(sizeof(t_2dpoint *) * map->depth)))
+	if(!(map->coord = (t_2dpoint **)malloc(sizeof(t_2dpoint *) * map->depth)))
 		return (INVAL_MEM_ERROR);
 	// Set up grid
 	while (i < map->depth)
 	{
-		if(!(map->coord_grid[i] = (t_2dpoint *)malloc(sizeof(t_2dpoint) * map->length)))
+		if(!(map->coord[i] = (t_2dpoint *)malloc(sizeof(t_2dpoint) * map->length)))
 			return(INVAL_MEM_ERROR);
 		j = 0;
 		while (j < map->length)
 		{
 			if (j == 0)
-				map->coord_grid[i][j] = set_point(WIN_WIDTH / 3, (WIN_HEIGHT / 3 + scale * i ));
+				map->coord[i][j] = set_point(WIDTH / 3, (HEIGHT / 3 + map->scale * i ),
+						map->map_grid[i][j]);
 			// Now every following point will be based on the precedent X,Y
 			else if (j > 0)
 			{
 				// Set point on grid(scaled)
-				map->coord_grid[i][j] = set_point(map->coord_grid[i][j - 1].x + scale, map->coord_grid[i][0].y);
+				map->coord[i][j] = set_point(map->coord[i][j - 1].x + map->scale, 
+						map->coord[i][0].y, map->map_grid[i][j]);
 				// Draw lines
-				draw_line(mlx_ptr, win_ptr, map->coord_grid[i][j - 1], map->coord_grid[i][j]);
+				draw_line(mlx, map->coord[i][j - 1], map->coord[i][j]);
 			}
 			// Draw columns
 			if (i != 0)
-				draw_line(mlx_ptr, win_ptr, map->coord_grid[i - 1][j], map->coord_grid[i][j]);
+				draw_line(mlx, map->coord[i - 1][j], map->coord[i][j]);
+			// Set pixel in unsigned img * array
+			
 			j++;
 		}
 		i++;
@@ -236,7 +262,7 @@ int		read_map(char *map_name, t_map *map)
 	if(!(map->map_grid = (int **)malloc(sizeof(int*) * line_nbr)))
 		return (INVAL_MEM_ERROR);
 	line_nbr = 0;
-	// In this loop we can(if not here somewhere else)
+	// In this loop we can
 	// check for erros like wrong input
 	// Or different sized lines
 	while (get_next_line(fd, &line))	// Allocate memory for each row in map->map_grid[x]
@@ -277,15 +303,16 @@ void	TEST_print_map(t_map *map) // Test if parsing(.fdf ~ map->map_grid was succ
 	// each element in the matrix map, so we can send the coordinates 
 	// matrix to the draw_grid function
 
-int		set_map(void *mlx_ptr, void *win_ptr, char *map_name)
+int		set_map(t_mlx *mlx, char *map_name)
 {
 	t_map	*map;	
 
 	if(!(map = (t_map *)malloc(sizeof(t_map))) || !map_name || !(*map_name)) 
 		return (INVAL_MEM_ERROR);
+	map->scale = SCALE(2);	// Default scale but can be changed by user input(where?)
 	if(read_map(map_name, map) < 0)
 		return (-1);
-	if(draw_grid(mlx_ptr, win_ptr, map) < 0)
+	if(draw_grid(mlx, map) < 0)
 		return (-1);
 	/*-- Testing Functions --*/
 	TEST_print_map(map);
@@ -293,18 +320,33 @@ int		set_map(void *mlx_ptr, void *win_ptr, char *map_name)
 	return (0);
 }
 
+// Destroy current image if there's one
+// Creates a new one
+/*
+int		new_image(t_mlx *mlx)
+{
+	mlx_destroy_image(mlx->mlx_ptr, mlx->img->img_ptr);
+	mlx->img->img_ptr = mlx_new_image(mlx->mlx_ptr, mlx->win_ptr,
+		   								mlx->img->img_ptr, 0, 0);
+
+}
+*/
+
 int		fdf_start(char	*map_name)
 {
 	t_mlx	*mlx;
 
 	if(!(mlx = (t_mlx *)malloc(sizeof(t_mlx))))
 		return (INVAL_MEM_ERROR);
+	if(!(mlx->img = (t_img *)malloc(sizeof(t_img *))))
+		return (INVAL_MEM_ERROR);
 	// Initialize connection with graphical server
 	mlx->mlx_ptr = mlx_init();
 	// Initialize window
-	mlx->win_ptr = mlx_new_window(mlx->mlx_ptr, WIN_WIDTH, WIN_HEIGHT, "Fdf");
-
-	if(set_map(mlx->mlx_ptr, mlx->win_ptr, map_name) < 0)
+	mlx->win_ptr = mlx_new_window(mlx->mlx_ptr, WIDTH, HEIGHT, "Fdf");
+	// Initialize image
+	mlx->img->img_ptr = mlx_new_image(mlx->mlx_ptr, WIDTH, HEIGHT);
+	if(set_map(mlx, map_name) < 0)
 		return (INVAL_MAP_ERROR);
 
 	mlx_string_put(mlx->mlx_ptr, mlx->win_ptr, 400, 300, 0XFF00FF, "Belo chupa orla");
@@ -320,23 +362,13 @@ int		fdf_start(char	*map_name)
 int main(int argc, char **argv)
 {
 
-	(void)argc;	
-	//mlx_ptr = mlx_init();	// Initialize Connection with graphical server
-
-	//win_ptr = mlx_new_window(mlx_ptr, WIN_WIDTH, WIN_HEIGHT, "FdF"); // Initialize Window
-
-	//-- Beginning of tests --//
-	//if(set_map(mlx_ptr, win_ptr, argv[1]) < 0) // Parses .fdf to map and coord grids and prints it
+	if (argc != 2)
+	{
+		ft_putstr("Usage ./fdf <file>\n");
+		return (-1);
+	}
 	if (fdf_start(argv[1]) < 0)
 		return (-1);
-	//--    End of test		--//
-	
-	//mlx_string_put(mlx_ptr, win_ptr, 400,300, 0XFF00FF, "Belo chupa rola"); // Print string *test*
 
-	//mlx_key_hook(win_ptr, deal_key, (void *)0); // Watch for keyboard inputs
-
-	//mlx_mouse_hook(win_ptr, deal_key, (void *)0); // Watch for mouse inputs
-
-	//mlx_loop(mlx_ptr);		// Listen for events
 	return (0);
 }
