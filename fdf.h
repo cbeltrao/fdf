@@ -6,7 +6,7 @@
 /*   By: cbeltrao <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/06 18:02:08 by cbeltrao          #+#    #+#             */
-/*   Updated: 2018/10/21 22:50:34 by cbeltrao         ###   ########.fr       */
+/*   Updated: 2018/10/24 14:43:45 by cbeltrao         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,9 +22,18 @@
 
 typedef struct	s_2dpoint
 {
-	int x;
-	int y;
+	int 		x;
+	int 		y;
 }				t_2dpoint;
+
+typedef	struct	s_img
+{
+	void			*img_ptr;
+	unsigned int	*img;
+	int				size_l;
+	int				bpp;
+	int				endian;
+}				t_img;
 
 typedef	struct	s_map
 {
@@ -33,5 +42,12 @@ typedef	struct	s_map
 	int			depth;
 	t_2dpoint	**coord_grid;
 }				t_map;
+
+typedef	struct	s_mlx
+{
+	void 		*mlx_ptr;
+	void		*win_ptr;
+	t_img		img;
+}				t_mlx;
 
 #endif

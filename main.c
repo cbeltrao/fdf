@@ -6,11 +6,12 @@
 /*   By: cbeltrao <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/01 11:54:03 by cbeltrao          #+#    #+#             */
-/*   Updated: 2018/10/21 23:37:16 by cbeltrao         ###   ########.fr       */
+/*   Updated: 2018/10/24 14:54:25 by cbeltrao         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <stdio.h>
+#include <errno.h>
 #include "mlx.h"
 #include "fdf.h"
 #include <math.h>
@@ -146,21 +147,12 @@ int		draw_grid(void *mlx_ptr, void *win_ptr, t_map *map)
 	int i;
 	int j;
 
-	/* Useless variables since i'm now using the struct
-	* and can gather all information from there
-	int grid_width = DEPTH_OF(grid);
-	int grid_height = 4;
-	t_2dpoint	grid_points[sizeof(grid[0])/sizeof(grid[0][0])]
-							[sizeof(grid[1])/sizeof(grid[1][0])];
-	*/
-
-	scale = 50;
+	scale = 20;
 	i = 0;
 	j = 0;
 	if(!(map->coord_grid = (t_2dpoint **)malloc(sizeof(t_2dpoint *) * map->depth)))
 		return (INVAL_MEM_ERROR);
 	// Set up grid
-	printf("MAP DEPTH: %d || mAP LENGTH: %d \n\n\n", map->depth, map->length);
 	while (i < map->depth)
 	{
 		if(!(map->coord_grid[i] = (t_2dpoint *)malloc(sizeof(t_2dpoint) * map->length)))
@@ -168,10 +160,6 @@ int		draw_grid(void *mlx_ptr, void *win_ptr, t_map *map)
 		j = 0;
 		while (j < map->length)
 		{
-			fflush(stdout);
-			printf("OPAENTROU\n");
-			fflush(stdout);
-			// Sets X,Y if it's the first point of a line
 			if (j == 0)
 				map->coord_grid[i][j] = set_point(WIN_WIDTH / 3, (WIN_HEIGHT / 3 + scale * i ));
 			// Now every following point will be based on the precedent X,Y
@@ -185,13 +173,10 @@ int		draw_grid(void *mlx_ptr, void *win_ptr, t_map *map)
 			// Draw columns
 			if (i != 0)
 				draw_line(mlx_ptr, win_ptr, map->coord_grid[i - 1][j], map->coord_grid[i][j]);
-			printf("'i: %d', 'j: %d', x:%d, y:%d   \n", i, j, map->coord_grid[i][j].x, map->coord_grid[i][j].y);
 			j++;
 		}
-		printf("\n");
 		i++;
 	}
-	printf("SAIU GAROTO\n");
 	return (0);
 }
 
@@ -212,12 +197,12 @@ int		grid_add_line(t_map *map, char *line, int line_nbr)
 	if(!(map->map_grid[line_nbr] = (int *)malloc((sizeof(int)) * map->length)))
 		return (INVAL_MEM_ERROR);
 	i = 0;
-	while(*tmp)
+	while(*(tmp + i))
 	{
-		map->map_grid[line_nbr][i] = ft_atoi(*tmp++);	
-		i++;
+		map->map_grid[line_nbr][i] = ft_atoi(*(tmp + i));	
+		free(*(tmp + i++));
 	}
-	// DONT FORGET TO FREE TMP AND ITS INSIDES
+	free(tmp);
 	return (0);
 }
 
@@ -228,7 +213,8 @@ int		line_count(char *map_name)
 	int fd;
 
 	lines = 0;
-	fd = open(map_name, O_RDONLY);
+	if((fd = open(map_name, O_RDONLY)) < 0)
+		return (INVAL_MAP_ERROR);
 	while (get_next_line(fd, &line))
 		lines++;
 	close(fd);
@@ -241,16 +227,15 @@ int		read_map(char *map_name, t_map *map)
 	int		fd;
 	int		line_nbr;
 	char	*line;
-	//int		len;
 
-	line_nbr = line_count(map_name);	// Get the number of lines in map file
+	if((line_nbr = line_count(map_name)) < 0)	// Get the number of lines in map file
+		return (INVAL_MAP_ERROR);
+	if((fd = open(map_name, O_RDONLY)) < 0)	
+		return (INVAL_MAP_ERROR);
 	map->depth = line_nbr; 				// Depth of matrix = number of lines in map file
 	if(!(map->map_grid = (int **)malloc(sizeof(int*) * line_nbr)))
 		return (INVAL_MEM_ERROR);
-	if((fd = open(map_name, O_RDONLY)) < 0)	
-		return (INVAL_MAP_ERROR);
 	line_nbr = 0;
-
 	// In this loop we can(if not here somewhere else)
 	// check for erros like wrong input
 	// Or different sized lines
@@ -260,7 +245,8 @@ int		read_map(char *map_name, t_map *map)
 		line_nbr++;
    	}
 	close(fd); 
-	return (0); }
+	return (0); 
+}
 
 
 void	TEST_print_map(t_map *map) // Test if parsing(.fdf ~ map->map_grid was successful
@@ -293,39 +279,64 @@ void	TEST_print_map(t_map *map) // Test if parsing(.fdf ~ map->map_grid was succ
 
 int		set_map(void *mlx_ptr, void *win_ptr, char *map_name)
 {
-	t_map *map;	
+	t_map	*map;	
 
-	if(!(map = (t_map *)malloc(sizeof(t_map))) || !map_name) 
+	if(!(map = (t_map *)malloc(sizeof(t_map))) || !map_name || !(*map_name)) 
 		return (INVAL_MEM_ERROR);
-	read_map(map_name, map);
-	draw_grid(mlx_ptr, win_ptr, map);
+	if(read_map(map_name, map) < 0)
+		return (-1);
+	if(draw_grid(mlx_ptr, win_ptr, map) < 0)
+		return (-1);
 	/*-- Testing Functions --*/
 	TEST_print_map(map);
 	/*-- end of testing functions --*/
 	return (0);
 }
 
+int		fdf_start(char	*map_name)
+{
+	t_mlx	*mlx;
+
+	if(!(mlx = (t_mlx *)malloc(sizeof(t_mlx))))
+		return (INVAL_MEM_ERROR);
+	// Initialize connection with graphical server
+	mlx->mlx_ptr = mlx_init();
+	// Initialize window
+	mlx->win_ptr = mlx_new_window(mlx->mlx_ptr, WIN_WIDTH, WIN_HEIGHT, "Fdf");
+
+	if(set_map(mlx->mlx_ptr, mlx->win_ptr, map_name) < 0)
+		return (INVAL_MAP_ERROR);
+
+	mlx_string_put(mlx->mlx_ptr, mlx->win_ptr, 400, 300, 0XFF00FF, "Belo chupa orla");
+	
+	mlx_key_hook(mlx->win_ptr, deal_key, (void *)0);
+
+	mlx_mouse_hook(mlx->win_ptr, deal_key, (void *)0);
+
+	mlx_loop(mlx->mlx_ptr);
+	return (1);
+}
+
 int main(int argc, char **argv)
 {
-	void		*mlx_ptr;
-	void		*win_ptr;
 
 	(void)argc;	
-	mlx_ptr = mlx_init();	// Initialize Connection with graphical server
+	//mlx_ptr = mlx_init();	// Initialize Connection with graphical server
 
-	win_ptr = mlx_new_window(mlx_ptr, WIN_WIDTH, WIN_HEIGHT, "FdF"); // Initialize Window
+	//win_ptr = mlx_new_window(mlx_ptr, WIN_WIDTH, WIN_HEIGHT, "FdF"); // Initialize Window
 
 	//-- Beginning of tests --//
-	set_map(mlx_ptr, win_ptr, argv[1]); // Parses .fdf to map and coord grids and prints it
-	//-- End of tests --//
+	//if(set_map(mlx_ptr, win_ptr, argv[1]) < 0) // Parses .fdf to map and coord grids and prints it
+	if (fdf_start(argv[1]) < 0)
+		return (-1);
+	//--    End of test		--//
+	
+	//mlx_string_put(mlx_ptr, win_ptr, 400,300, 0XFF00FF, "Belo chupa rola"); // Print string *test*
 
-	mlx_string_put(mlx_ptr, win_ptr, 400,300, 0XFF00FF, "Belo chupa rola"); // Print string *test*
+	//mlx_key_hook(win_ptr, deal_key, (void *)0); // Watch for keyboard inputs
 
-	mlx_key_hook(win_ptr, deal_key, (void *)0); // Watch for keyboard inputs
+	//mlx_mouse_hook(win_ptr, deal_key, (void *)0); // Watch for mouse inputs
 
-	mlx_mouse_hook(win_ptr, deal_key, (void *)0); // Watch for mouse inputs
-
-	//Listen for events 
-	mlx_loop(mlx_ptr);
+	//mlx_loop(mlx_ptr);		// Listen for events
 	return (0);
 }
