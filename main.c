@@ -6,7 +6,7 @@
 /*   By: cbeltrao <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/01 11:54:03 by cbeltrao          #+#    #+#             */
-/*   Updated: 2018/10/24 16:16:44 by cbeltrao         ###   ########.fr       */
+/*   Updated: 2018/10/25 16:04:59 by cbeltrao         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,17 @@ t_2dpoint	set_point(int x, int y, int z)
 	return temp;
 }
 
+static void iso(int *x, int *y, int z)
+{
+    int previous_x;
+    int previous_y;
+
+    previous_x = *x;
+    previous_y = *y;
+    *x = (previous_x - previous_y) * cos(0.523599);
+    *y = -z + (previous_x + previous_y) * sin(0.523599);
+}
+
 void	ft_swap(int *a, int *b)
 {
 	int tmp;
@@ -48,10 +59,32 @@ void	ft_swap(int *a, int *b)
 	*b = tmp;
 }
 
+void	fill_pixel(unsigned int *img, int x, int y, int z)
+{
+	if (x < WIDTH && y < HEIGHT && x >= 0 && y >= 0)
+	{
+		if (z < 0)
+			img[y * WIDTH + x] = 0x01013c;
+		else if (z == 0)
+			img[y * WIDTH + x] = 0xffffff;
+		else if (z <= 10)
+			img[y * WIDTH + x] = 0xffffdd;
+		else if (z <= 20)
+			img[y * WIDTH + x] = 0xffff51;
+		else if (z <= 25)
+			img[y * WIDTH + x] = 0xffff15;
+		else if (z <= 50)
+			img[y * WIDTH + x] = 0xff7d23;
+		else if (z <= 100)
+			img[y * WIDTH + x] = 0xff0051;
+		else
+			img[y * WIDTH + x] = 0xff140d;
+	}
+}
 
 // Bresenhams functions are too long and have to may variables - redo
 /* Bresenhams Algorithm to draw a line dy being the dominant axis*/
-void	draw_line_da_y(void *mlx_ptr, void *win_ptr,
+void	draw_line_da_y(t_mlx *mlx,
 	   	t_2dpoint initial_p, t_2dpoint final_p)
 {
 	int x;
@@ -81,15 +114,16 @@ void	draw_line_da_y(void *mlx_ptr, void *win_ptr,
 			err -= dy;
 			x += xincr;
 		}
-		mlx_pixel_put(mlx_ptr, win_ptr, x, y, 0XFF00FF);
+		//mlx_pixel_put(mlx->mlx_ptr, mlx->win_ptr, x, y, 0XFF00FF);
+		fill_pixel(mlx->img.img_ui, x, y, initial_p.z);
 	}
-	mlx_pixel_put(mlx_ptr, win_ptr, x, y, 0XFF00FF);
-	mlx_pixel_put(mlx_ptr, win_ptr, x, y, 0XFF00FF);
+	//mlx_pixel_put(mlx->mlx_ptr, mlx->win_ptr, x, y, 0XFF00FF);
+	fill_pixel(mlx->img.img_ui, x, y, initial_p.z);
 }
 
 
 /* Bresenhams Algorithm to draw a line dx being the dominant axis*/
-void	draw_line_da_x(void *mlx_ptr, void *win_ptr,
+void	draw_line_da_x(t_mlx *mlx,
 	   	t_2dpoint initial_p, t_2dpoint final_p)
 {
 	int x;
@@ -118,11 +152,14 @@ void	draw_line_da_x(void *mlx_ptr, void *win_ptr,
 			err -= dx;
 			y += yincr;
 		}	
-		mlx_pixel_put(mlx_ptr, win_ptr, x, y, 0XFF00FF);
+	//	mlx_pixel_put(mlx->mlx_ptr, mlx->win_ptr, x, y, 0XFF00FF);
+		fill_pixel(mlx->img.img_ui, x, y, initial_p.z);
 		i++;
 	}
-	mlx_pixel_put(mlx_ptr, win_ptr, initial_p.x, initial_p.y, 0XFF00FF);
-	mlx_pixel_put(mlx_ptr, win_ptr, final_p.x, final_p.y, 0XFF00FF);
+	//mlx_pixel_put(mlx_ptr, win_ptr, initial_p.x, initial_p.y, 0XFF00FF);
+	fill_pixel(mlx->img.img_ui, initial_p.x, initial_p.y, initial_p.z);
+	//mlx_pixel_put(mlx_ptr, win_ptr, final_p.x, final_p.y, 0XFF00FF);
+	fill_pixel(mlx->img.img_ui, final_p.x, final_p.y, final_p.z);
 }
 
 int		draw_line(t_mlx *mlx, t_2dpoint initial_p,
@@ -136,34 +173,12 @@ int		draw_line(t_mlx *mlx, t_2dpoint initial_p,
 	dy = abs(final_p.y - initial_p.y);
 	dominant_axis = (dx > dy ? 'x' : 'y');
 	if (dominant_axis == 'x')
-		draw_line_da_x(mlx->mlx_ptr, mlx->win_ptr, initial_p, final_p);
+		draw_line_da_x(mlx, initial_p, final_p);
 	else
-		draw_line_da_y(mlx->mlx_ptr, mlx->win_ptr, initial_p, final_p);
+		draw_line_da_y(mlx, initial_p, final_p);
 	return (0);
 }
 
-void	fill_pixel(unsigned int *img, int x, int y, int z)
-{
-	if (x < WIDTH && y < HEIGHT && x >= 0 && y >= 0)
-	{
-		if (z < 0)
-			img[y * WIDTH + x] = 0x01013c;
-		else if (z == 0)
-			img[y * WIDTH + x] = 0xffffff;
-		else if (z <= 10)
-			img[y * WIDTH + x] = 0xffffdd;
-		else if (z <= 20)
-			img[y * WIDTH + x] = 0xffff51;
-		else if (z <= 25)
-			img[y * WIDTH + x] = 0xffff15;
-		else if (z <= 50)
-			img[y * WIDTH + x] = 0xff7d23;
-		else if (z <= 100)
-			img[y * WIDTH + x] = 0xff0051;
-		else
-			img[y * WIDTH + x] = 0xff140d;
-	}
-}
 
 int		draw_grid(t_mlx *mlx, t_map *map)
 {
@@ -183,26 +198,30 @@ int		draw_grid(t_mlx *mlx, t_map *map)
 		while (j < map->length)
 		{
 			if (j == 0)
-				map->coord[i][j] = set_point(WIDTH / 3, (HEIGHT / 3 + map->scale * i ),
-						map->map_grid[i][j]);
+			{
+				map->coord[i][j] = set_point((WIDTH / 2) - map->map_grid[i][j], ((HEIGHT / 2)- map->map_grid[i][j] + (map->scale * i) )
+						, map->map_grid[i][j]);
+				//iso(&map->coord[i][j].x, &map->coord[i][j].y, map->coord[i][j].z);
+			}
+			
 			// Now every following point will be based on the precedent X,Y
 			else if (j > 0)
 			{
 				// Set point on grid(scaled)
-				map->coord[i][j] = set_point(map->coord[i][j - 1].x + map->scale, 
-						map->coord[i][0].y, map->map_grid[i][j]);
+				map->coord[i][j] = set_point(map->coord[i][0].x - map->map_grid[i][j] + (map->scale * j), 
+						map->coord[i][0].y - map->map_grid[i][j], map->map_grid[i][j]);
 				// Draw lines
+				iso(&map->coord[i][j].x, &map->coord[i][j].y, map->coord[i][j].z);
 				draw_line(mlx, map->coord[i][j - 1], map->coord[i][j]);
 			}
 			// Draw columns
 			if (i != 0)
 				draw_line(mlx, map->coord[i - 1][j], map->coord[i][j]);
-			// Set pixel in unsigned img * array
-			
 			j++;
 		}
 		i++;
 	}
+	(void)iso(&i, &j, i);
 	return (0);
 }
 
@@ -309,13 +328,14 @@ int		set_map(t_mlx *mlx, char *map_name)
 
 	if(!(map = (t_map *)malloc(sizeof(t_map))) || !map_name || !(*map_name)) 
 		return (INVAL_MEM_ERROR);
-	map->scale = SCALE(2);	// Default scale but can be changed by user input(where?)
+	map->scale = SCALE(15);	// Default scale but can be changed by user input(where?)
 	if(read_map(map_name, map) < 0)
 		return (-1);
 	if(draw_grid(mlx, map) < 0)
 		return (-1);
+	mlx_put_image_to_window(mlx->mlx_ptr, mlx->win_ptr, mlx->img.img_ptr, 0, 0);
 	/*-- Testing Functions --*/
-	TEST_print_map(map);
+//	TEST_print_map(map);
 	/*-- end of testing functions --*/
 	return (0);
 }
@@ -336,16 +356,17 @@ int		fdf_start(char	*map_name)
 {
 	t_mlx	*mlx;
 
-	if(!(mlx = (t_mlx *)malloc(sizeof(t_mlx))))
+	if(!(mlx = (t_mlx *)ft_memalloc(sizeof(t_mlx))))
 		return (INVAL_MEM_ERROR);
-	if(!(mlx->img = (t_img *)malloc(sizeof(t_img *))))
-		return (INVAL_MEM_ERROR);
+	//if(!(mlx->img = (t_img *)ft_memalloc(sizeof(t_img *))))
+		//return (INVAL_MEM_ERROR);
 	// Initialize connection with graphical server
 	mlx->mlx_ptr = mlx_init();
 	// Initialize window
 	mlx->win_ptr = mlx_new_window(mlx->mlx_ptr, WIDTH, HEIGHT, "Fdf");
 	// Initialize image
-	mlx->img->img_ptr = mlx_new_image(mlx->mlx_ptr, WIDTH, HEIGHT);
+	mlx->img.img_ptr = mlx_new_image(mlx->mlx_ptr, WIDTH, HEIGHT);
+	mlx->img.img_ui = (unsigned int *)mlx_get_data_addr(mlx->img.img_ptr, &(mlx->img.size_l), &(mlx->img.bpp), &(mlx->img.endian));
 	if(set_map(mlx, map_name) < 0)
 		return (INVAL_MAP_ERROR);
 
