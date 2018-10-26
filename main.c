@@ -6,7 +6,7 @@
 /*   By: cbeltrao <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/01 11:54:03 by cbeltrao          #+#    #+#             */
-/*   Updated: 2018/10/26 16:54:59 by cbeltrao         ###   ########.fr       */
+/*   Updated: 2018/10/26 18:43:45 by cbeltrao         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -220,20 +220,19 @@ int		grid_add_line(t_map *map, char *line, int line_nbr)
 	int		i;
 
 	i = 0;
-	if(!line || !(tmp = ft_strsplit(line, ' ')))
+	if (!line || !(tmp = ft_strsplit(line, ' ')))
 		return (INVAL_MEM_ERROR);
-	// Counting how many strings("ints") there are in total
-	// So we can know what to allocate
-	// for the size of each int array in the matrix 
-	while(*(tmp + i))
+	while (*(tmp + i)) // Total amount of strings = total amount of numbers in a line
 		i++;
+	if (line_nbr > 0 && i != map->length) // Check for different line lengths
+		return (INVAL_MAP_ERROR);
 	map->length = i;
-	if(!(map->map_grid[line_nbr] = (int *)malloc((sizeof(int)) * map->length)))
+	if (!(map->map_grid[line_nbr] = (int *)malloc((sizeof(int)) * map->length)))
 		return (INVAL_MEM_ERROR);
 	i = 0;
-	while(*(tmp + i))
+	while (*(tmp + i))
 	{
-		map->map_grid[line_nbr][i] = ft_atoi(*(tmp + i));	
+		map->map_grid[line_nbr][i] = ft_atoi(*(tmp + i));	// Parsing numbers in strings to ints
 		free(*(tmp + i++));
 	}
 	free(tmp);
@@ -242,12 +241,12 @@ int		grid_add_line(t_map *map, char *line, int line_nbr)
 
 int		line_count(char *map_name)
 {
-	int lines;
-	char *line;
-	int fd;
+	int		lines;
+	char	*line;
+	int		fd;
 
 	lines = 0;
-	if((fd = open(map_name, O_RDONLY)) < 0)
+	if ((fd = open(map_name, O_RDONLY)) < 0)
 		return (INVAL_MAP_ERROR);
 	while (get_next_line(fd, &line))
 		lines++;
@@ -262,20 +261,18 @@ int		read_map(char *map_name, t_map *map)
 	int		line_nbr;
 	char	*line;
 
-	if((line_nbr = line_count(map_name)) < 0)	// Get the number of lines in map file
+	if ((line_nbr = line_count(map_name)) < 0)	// Get the number of lines in map file
 		return (INVAL_MAP_ERROR);
-	if((fd = open(map_name, O_RDONLY)) < 0)	
+	if ((fd = open(map_name, O_RDONLY)) < 0)	
 		return (INVAL_MAP_ERROR);
 	map->depth = line_nbr; 				// Depth of matrix = number of lines in map file
-	if(!(map->map_grid = (int **)malloc(sizeof(int*) * line_nbr)))
+	if (!(map->map_grid = (int **)malloc(sizeof(int*) * line_nbr)))
 		return (INVAL_MEM_ERROR);
 	line_nbr = 0;
-	// In this loop we can
-	// check for erros like wrong input
-	// Or different sized lines
 	while (get_next_line(fd, &line))	// Allocate memory for each row in map->map_grid[x]
 	{
-	   	grid_add_line(map, line, line_nbr);
+	   	if ((grid_add_line(map, line, line_nbr)) < 0)
+			return (INVAL_MAP_ERROR);
 		line_nbr++;
    	}
 	close(fd); 
@@ -323,9 +320,6 @@ int		set_map(t_mlx *mlx, char *map_name)
 	if(draw_grid(mlx, map) < 0)
 		return (-1);
 	mlx_put_image_to_window(mlx->mlx_ptr, mlx->win_ptr, mlx->img.img_ptr, 0, 0);
-	/*-- Testing Functions --*/
-//	TEST_print_map(map);
-	/*-- end of testing functions --*/
 	return (0);
 }
 
@@ -341,37 +335,32 @@ int		new_image(t_mlx *mlx)
 }
 */
 
-int		fdf_start(char	*map_name)
+int		fdf_start(char *map_name)
 {
 	t_mlx	*mlx;
 
-	if(!(mlx = (t_mlx *)ft_memalloc(sizeof(t_mlx))))
+	if (!(mlx = (t_mlx *)ft_memalloc(sizeof(t_mlx))))
 		return (INVAL_MEM_ERROR);
-	//if(!(mlx->img = (t_img *)ft_memalloc(sizeof(t_img *))))
-		//return (INVAL_MEM_ERROR);
 	// Initialize connection with graphical server
 	mlx->mlx_ptr = mlx_init();
 	// Initialize window
 	mlx->win_ptr = mlx_new_window(mlx->mlx_ptr, WIDTH, HEIGHT, "Fdf");
 	// Initialize image
 	mlx->img.img_ptr = mlx_new_image(mlx->mlx_ptr, WIDTH, HEIGHT);
-	mlx->img.img_ui = (unsigned int *)mlx_get_data_addr(mlx->img.img_ptr, &(mlx->img.size_l), &(mlx->img.bpp), &(mlx->img.endian));
-	if(set_map(mlx, map_name) < 0)
+	mlx->img.img_ui = (unsigned int *)mlx_get_data_addr(mlx->img.img_ptr
+			, &(mlx->img.size_l), &(mlx->img.bpp), &(mlx->img.endian));
+	if (set_map(mlx, map_name) < 0)
 		return (INVAL_MAP_ERROR);
-
-	mlx_string_put(mlx->mlx_ptr, mlx->win_ptr, 400, 300, 0XFF00FF, "Belo chupa orla");
-	
+	mlx_string_put(mlx->mlx_ptr, mlx->win_ptr,
+			400, 300, 0XFF00FF, "Belo chupa orla");
 	mlx_key_hook(mlx->win_ptr, deal_key, (void *)0);
-
 	mlx_mouse_hook(mlx->win_ptr, deal_key, (void *)0);
-
 	mlx_loop(mlx->mlx_ptr);
 	return (1);
 }
 
-int main(int argc, char **argv)
+int		main(int argc, char **argv)
 {
-
 	if (argc != 2)
 	{
 		ft_putstr("Usage ./fdf <file>\n");
@@ -379,6 +368,5 @@ int main(int argc, char **argv)
 	}
 	if (fdf_start(argv[1]) < 0)
 		return (-1);
-
 	return (0);
 }
