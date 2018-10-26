@@ -6,7 +6,7 @@
 /*   By: cbeltrao <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/06 18:02:08 by cbeltrao          #+#    #+#             */
-/*   Updated: 2018/10/26 16:57:25 by cbeltrao         ###   ########.fr       */
+/*   Updated: 2018/10/26 21:40:42 by cbeltrao         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,9 +14,9 @@
 # define FDF_H
 # define HEIGHT 1200
 # define WIDTH 1800
-# define I_X ((900) - map->map_grid[i][0])
-# define I_Y ((0) - map->map_grid[i][0] + (map->scale * i))
-# define SCALE(x) (5 * x)
+# define I_X ((900) - map->grid[i][0])
+# define I_Y ((0) - map->grid[i][0] + (map->k * i))
+# define SCALE(x) (2 * x)
 
 # define INVAL_MEM_ERROR -1
 # define INVAL_MAP_ERROR -2
@@ -26,6 +26,8 @@ typedef struct	s_2dpoint
 {
 	int 		x;
 	int 		y;
+	int			iso_x;
+	int			iso_y;
 	int			z;
 }				t_2dpoint;
 
@@ -40,11 +42,12 @@ typedef	struct	s_img
 
 typedef	struct	s_map
 {
-	int			**map_grid;
-	int			length;
-	int			depth;
-	float		scale;
-	t_2dpoint	**coord;
+	int			**grid;
+	int			len;
+	int			dep;
+	float		k; // scale
+	int			z_h; // height exclusive scale
+	t_2dpoint	**p;
 }				t_map;
 
 typedef	struct	s_mlx
@@ -52,6 +55,7 @@ typedef	struct	s_mlx
 	void 		*mlx_ptr;
 	void		*win_ptr;
 	t_img		img;
+	t_map		*map;
 }				t_mlx;
 
 #endif
