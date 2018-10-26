@@ -6,7 +6,7 @@
 /*   By: cbeltrao <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/06 18:02:08 by cbeltrao          #+#    #+#             */
-/*   Updated: 2018/10/25 15:45:15 by cbeltrao         ###   ########.fr       */
+/*   Updated: 2018/10/26 16:57:25 by cbeltrao         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,9 @@
 # define FDF_H
 # define HEIGHT 1200
 # define WIDTH 1800
-# define SCALE(x) (2 * x)
+# define I_X ((900) - map->map_grid[i][0])
+# define I_Y ((0) - map->map_grid[i][0] + (map->scale * i))
+# define SCALE(x) (5 * x)
 
 # define INVAL_MEM_ERROR -1
 # define INVAL_MAP_ERROR -2

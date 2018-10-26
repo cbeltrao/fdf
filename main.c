@@ -6,7 +6,7 @@
 /*   By: cbeltrao <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/01 11:54:03 by cbeltrao          #+#    #+#             */
-/*   Updated: 2018/10/25 16:04:59 by cbeltrao         ###   ########.fr       */
+/*   Updated: 2018/10/26 16:54:59 by cbeltrao         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,7 +64,7 @@ void	fill_pixel(unsigned int *img, int x, int y, int z)
 	if (x < WIDTH && y < HEIGHT && x >= 0 && y >= 0)
 	{
 		if (z < 0)
-			img[y * WIDTH + x] = 0x01013c;
+			img[y * WIDTH + x] = 0xff00ff;
 		else if (z == 0)
 			img[y * WIDTH + x] = 0xffffff;
 		else if (z <= 10)
@@ -96,7 +96,7 @@ void	draw_line_da_y(t_mlx *mlx,
 	int i;
 
 	dx = abs(final_p.x - initial_p.x);
-	dy = abs(final_p.y - initial_p.y);
+	dy = abs(initial_p.y - final_p.y);
 	i = 0;
 
 	xincr = (initial_p.x < final_p.x ? 1 : -1);	
@@ -152,13 +152,10 @@ void	draw_line_da_x(t_mlx *mlx,
 			err -= dx;
 			y += yincr;
 		}	
-	//	mlx_pixel_put(mlx->mlx_ptr, mlx->win_ptr, x, y, 0XFF00FF);
 		fill_pixel(mlx->img.img_ui, x, y, initial_p.z);
 		i++;
 	}
-	//mlx_pixel_put(mlx_ptr, win_ptr, initial_p.x, initial_p.y, 0XFF00FF);
 	fill_pixel(mlx->img.img_ui, initial_p.x, initial_p.y, initial_p.z);
-	//mlx_pixel_put(mlx_ptr, win_ptr, final_p.x, final_p.y, 0XFF00FF);
 	fill_pixel(mlx->img.img_ui, final_p.x, final_p.y, final_p.z);
 }
 
@@ -186,10 +183,8 @@ int		draw_grid(t_mlx *mlx, t_map *map)
 	int j;
 
 	i = 0;
-	j = 0;
 	if(!(map->coord = (t_2dpoint **)malloc(sizeof(t_2dpoint *) * map->depth)))
 		return (INVAL_MEM_ERROR);
-	// Set up grid
 	while (i < map->depth)
 	{
 		if(!(map->coord[i] = (t_2dpoint *)malloc(sizeof(t_2dpoint) * map->length)))
@@ -199,22 +194,16 @@ int		draw_grid(t_mlx *mlx, t_map *map)
 		{
 			if (j == 0)
 			{
-				map->coord[i][j] = set_point((WIDTH / 2) - map->map_grid[i][j], ((HEIGHT / 2)- map->map_grid[i][j] + (map->scale * i) )
-						, map->map_grid[i][j]);
-				//iso(&map->coord[i][j].x, &map->coord[i][j].y, map->coord[i][j].z);
+				map->coord[i][j] = set_point(I_X, I_Y, map->map_grid[i][j] * SCALE(1));
+				iso(&map->coord[i][j].x, &map->coord[i][j].y, map->coord[i][j].z);
 			}
-			
-			// Now every following point will be based on the precedent X,Y
 			else if (j > 0)
 			{
-				// Set point on grid(scaled)
-				map->coord[i][j] = set_point(map->coord[i][0].x - map->map_grid[i][j] + (map->scale * j), 
-						map->coord[i][0].y - map->map_grid[i][j], map->map_grid[i][j]);
-				// Draw lines
+				map->coord[i][j] = set_point(I_X - map->map_grid[i][j]+ (map->scale * j),
+						I_Y - map->map_grid[i][j], map->map_grid[i][j] * SCALE(1));
 				iso(&map->coord[i][j].x, &map->coord[i][j].y, map->coord[i][j].z);
 				draw_line(mlx, map->coord[i][j - 1], map->coord[i][j]);
 			}
-			// Draw columns
 			if (i != 0)
 				draw_line(mlx, map->coord[i - 1][j], map->coord[i][j]);
 			j++;
@@ -328,7 +317,7 @@ int		set_map(t_mlx *mlx, char *map_name)
 
 	if(!(map = (t_map *)malloc(sizeof(t_map))) || !map_name || !(*map_name)) 
 		return (INVAL_MEM_ERROR);
-	map->scale = SCALE(15);	// Default scale but can be changed by user input(where?)
+	map->scale = SCALE(2);	// Default scale but can be changed by user input(where?)
 	if(read_map(map_name, map) < 0)
 		return (-1);
 	if(draw_grid(mlx, map) < 0)
