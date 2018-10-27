@@ -6,7 +6,7 @@
 /*   By: cbeltrao <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/01 11:54:03 by cbeltrao          #+#    #+#             */
-/*   Updated: 2018/10/26 22:01:42 by cbeltrao         ###   ########.fr       */
+/*   Updated: 2018/10/27 16:27:00 by cbeltrao         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,20 @@ int			deal_key(int key, t_mlx *mlx)
 		image_refresh(mlx, "plus_z_height");
 	else if (key == 15)
 		image_refresh(mlx, "minus_z_height");
+	else if (key == 0)
+		image_refresh(mlx, "add_move_x");
+	else if (key == 1)
+		image_refresh(mlx, "sub_move_x");
+	else if (key == 2)
+		image_refresh(mlx, "add_move_y");
+	else if (key == 3)
+		image_refresh(mlx, "sub_move_y");
+	else if (key == 53)
+	{
+		printf("ESC PRESSED\n");
+		fflush(stdout);
+		return (1);
+	}
 	return (0);
 }
 
@@ -181,17 +195,20 @@ int			set_p_and_draw(t_mlx *mlx, t_map *map, int i, int j)
 {
 	if (j == 0)
 	{
-		map->p[i][j] = set_point((900) - map->grid[i][j],
-				(0) - map->grid[i][j] + (map->k * i),
-				(map->grid[i][j] + map->k) * map->z_h);
+		map->p[i][j] = set_point((900) - map->grid[i][j]
+				+ map->move_x,
+				(0) - map->grid[i][j]
+			   	+ (map->k * i) + map->move_y,
+				(map->grid[i][j]) * map->z_h);
 		iso(&map->p[i][j].x, &map->p[i][j].y, map->p[i][j].z);
 	}
 	else if (j > 0)
 	{
 		map->p[i][j] = set_point((900 - map->grid[i][0]) - map->grid[i][j]
-				+ (map->k * j),
-				((0) - map->grid[i][0]) - map->grid[i][j] + (map->k * i),
-				(map->grid[i][j] + map->k) * map->z_h);
+				+ (map->k * j) + map->move_x,
+				((0) - map->grid[i][0]) - map->grid[i][j]
+			   	+ (map->k * i) + map->move_y,
+				(map->grid[i][j]) * map->z_h);
 		iso(&map->p[i][j].x, &map->p[i][j].y, map->p[i][j].z);
 		draw_line(mlx, map->p[i][j - 1], map->p[i][j]);
 	}
@@ -293,6 +310,8 @@ int			set_map(t_mlx *mlx, char *map_name)
 		return (INVAL_MEM_ERROR);
 	map->k = SCALE(2); // distancia entre pontos e altura do z
 	map->z_h = 1;
+	map->move_x = 0;
+	map->move_y = 0;
 	if (read_map(map_name, map) < 0)
 		return (INVAL_MAP_ERROR);
 	mlx->map = map;
@@ -310,11 +329,19 @@ int		image_refresh(t_mlx *mlx, char *mode)
 	if(!ft_strcmp(mode, "plus_scale"))
 		mlx->map->k += 1;
 	else if (!ft_strcmp(mode, "minus_scale"))
-		mlx->map->k -= (mlx->map->k == 0 ? 0 : 1);
+		mlx->map->k -= (mlx->map->k == 1 ? 0 : 1);
 	else if (!ft_strcmp(mode, "plus_z_height"))
 		mlx->map->z_h += 1;
 	else if (!ft_strcmp(mode, "minus_z_height"))
-		mlx->map->z_h -= (mlx->map->z_h == 1 ? 0 : 1);
+		mlx->map->z_h -= 1;
+	else if (!ft_strcmp(mode, "add_move_x"))
+		mlx->map->move_x += 10;
+	else if (!ft_strcmp(mode, "sub_move_x"))
+		mlx->map->move_x -= 10;
+	else if (!ft_strcmp(mode, "add_move_y"))
+		mlx->map->move_y += 10;
+	else if (!ft_strcmp(mode, "sub_move_y"))
+		mlx->map->move_y -= 10;
 	mlx->img.img_ptr = mlx_new_image(mlx->mlx_ptr, WIDTH, HEIGHT);
 	mlx->img.img_ui = (unsigned int *)mlx_get_data_addr(mlx->img.img_ptr,
 			&(mlx->img.size_l), &(mlx->img.bpp), &(mlx->img.endian));
@@ -340,7 +367,6 @@ int			fdf_start(char *map_name)
 	mlx_string_put(mlx->mlx_ptr, mlx->win_ptr,
 			400, 300, 0XFF00FF, "Belo chupa orla");
 	mlx_key_hook(mlx->win_ptr, deal_key, mlx);
-	mlx_mouse_hook(mlx->win_ptr, deal_key, (void *)0);
 	mlx_loop(mlx->mlx_ptr);
 	return (1);
 }

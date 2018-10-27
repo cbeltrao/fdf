@@ -6,7 +6,7 @@
 /*   By: cbeltrao <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/06 18:02:08 by cbeltrao          #+#    #+#             */
-/*   Updated: 2018/10/26 21:40:42 by cbeltrao         ###   ########.fr       */
+/*   Updated: 2018/10/27 13:42:18 by cbeltrao         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,8 @@ typedef	struct	s_img
 typedef	struct	s_map
 {
 	int			**grid;
+	int			move_x;
+	int			move_y;
 	int			len;
 	int			dep;
 	float		k; // scale
