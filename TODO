@@ -1,0 +1,10 @@
+create menu - done
+separate in multiple .c files
+fix makefile -- libraries and such
+cool animations for beginning (optional)
+gradient(optional)
+smoother colors(optional)
+add map limit (optional)
+change map while in program(optional)
+turn 2 bresenham functions into one using ft_swap (? is it better than 2 functions?)
+analyse return codes
