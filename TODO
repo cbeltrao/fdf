@@ -7,4 +7,5 @@ smoother colors(optional)
 add map limit (optional)
 change map while in program(optional)
 turn 2 bresenham functions into one using ft_swap (? is it better than 2 functions?)
+test_perso/too_high gets stuck
 analyse return codes
