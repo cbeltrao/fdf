@@ -6,7 +6,7 @@
 /*   By: cbeltrao <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/06 18:02:08 by cbeltrao          #+#    #+#             */
-/*   Updated: 2018/10/27 23:54:20 by cbeltrao         ###   ########.fr       */
+/*   Updated: 2018/10/28 19:17:46 by cbeltrao         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,6 +92,8 @@ typedef	struct	s_mlx
 {
 	void		*mlx_ptr;
 	void		*win_ptr;
+	int			win_length;
+	int			win_depth;
 	t_img		img;
 	t_map		*map;
 	t_bresen	bres;

@@ -6,7 +6,7 @@
 /*   By: cbeltrao <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/10/27 22:59:53 by cbeltrao          #+#    #+#             */
-/*   Updated: 2018/10/28 00:01:50 by cbeltrao         ###   ########.fr       */
+/*   Updated: 2018/10/28 19:20:13 by cbeltrao         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -135,6 +135,9 @@ void			draw_line_da_x(t_mlx *mlx, t_2dpoint p1, t_2dpoint p2)
 		fill_pixel(mlx->img.pixel_pos, mlx->bres.x, mlx->bres.y, p1.z);
 		i++;
 	}
+	fill_pixel(mlx->img.pixel_pos, p1.x, p1.y, p1.z);
+	fill_pixel(mlx->img.pixel_pos, p2.x, p2.y, p1.z);
+	
 }
 
 int				draw_line(t_mlx *mlx, t_2dpoint p1, t_2dpoint p2, int cam_mode)
@@ -162,33 +165,21 @@ int				draw_line(t_mlx *mlx, t_2dpoint p1, t_2dpoint p2, int cam_mode)
 	return (SUCCESS);
 }
 
-int				set_point_and_draw(t_mlx *mlx, t_map *map, int i, int j)
+int				set_coords_and_draw(t_mlx *mlx, t_map *map, int i, int j)
 {
-	if (j == 0)
-	{
-		map->p[i][j] = set_point((900) - map->grid[i][j]
-				+ map->move_x,
-				(0) - map->grid[i][j]
-				+ (map->k * i) + map->move_y,
-				(map->grid[i][j]) * map->height_k);
-	}
-	else if (j > 0)
-	{
-		map->p[i][j] = set_point((900 - map->grid[i][0])
-				- (map->grid[i][j] * map->height_k)
-				+ (map->k * j) + map->move_x,
-				((0) - map->grid[i][0])
-				- (map->grid[i][j] * map->height_k)
-				+ (map->k * i) + map->move_y,
-				((map->grid[i][j]) * map->height_k));
+	map->p[i][j] = set_point((900) + (map->k * (j + 1)) - (map->grid[i][j] * map->height_k)
+							+ map->move_x,
+							((0) + (map->k * (i + 1))) - (map->grid[i][j] * map->height_k)
+							+ map->move_y,
+							(map->grid[i][j] * map->height_k));
+	if ( j != 0)
 		draw_line(mlx, map->p[i][j - 1], map->p[i][j], map->cam);
-	}
 	if (i != 0)
 		draw_line(mlx, map->p[i - 1][j], map->p[i][j], map->cam);
 	return (SUCCESS);
 }
 
-int				coordinates_setup(t_mlx *mlx, t_map *map)
+int				set_points_and_draw(t_mlx *mlx, t_map *map)
 {
 	int i;
 	int j;
@@ -201,7 +192,7 @@ int				coordinates_setup(t_mlx *mlx, t_map *map)
 		j = 0;
 		while (j < map->len)
 		{
-			set_point_and_draw(mlx, map, i, j);
+			set_coords_and_draw(mlx, map, i, j);
 			j++;
 		}
 		i++;
@@ -279,17 +270,16 @@ int				set_map(t_mlx *mlx, char *map_name)
 
 	if (!(map = (t_map *)malloc(sizeof(t_map))) || !map_name || !(*map_name))
 		return (INVAL_MEM_ERROR);
-	map->k = SCALE(2);
+	map->k = 4;
 	map->height_k = 1;
 	map->cam = ISOMETRIC;
 	map->move_x = 0;
 	map->move_y = 0;
 	if (map_parse_to_int(map_name, map) < 0)
-		return (INVAL_MAP_ERROR);
-	mlx->map = map;
+		return (INVAL_MAP_ERROR); mlx->map = map;
 	if (!(map->p = (t_2dpoint **)malloc(sizeof(t_2dpoint *) * map->dep)))
 		return (INVAL_MEM_ERROR);
-	if (coordinates_setup(mlx, map) < 0)
+	if (set_points_and_draw(mlx, map) < 0)
 		return (INVAL_MEM_ERROR);
 	mlx_put_image_to_window(mlx->mlx_ptr, mlx->win_ptr, mlx->img.img_ptr, 0, 0);
 	return (SUCCESS);
@@ -325,27 +315,27 @@ int				param_refresh(t_mlx *mlx, int mode)
 int				initialize_menu(t_mlx *mlx)
 {
 	mlx_string_put(mlx->mlx_ptr, mlx->win_ptr, 90, 50, MENU_COLOR,
-			"___________________");
+			"___________________________");
 	mlx_string_put(mlx->mlx_ptr, mlx->win_ptr, 90, 70, MENU_COLOR,
-			"|       MENU      |");
+			"|          MENU           |");
 	mlx_string_put(mlx->mlx_ptr, mlx->win_ptr, 90, 90, MENU_COLOR,
-			"| MOVE:  W A S D  |");
+			"|  W A S D  ::  MOVE      |");
 	mlx_string_put(mlx->mlx_ptr, mlx->win_ptr, 90, 110, MENU_COLOR,
-			"| + ZOOM:     E   |");
+			"|     E     ::  +ZOOM     |");
 	mlx_string_put(mlx->mlx_ptr, mlx->win_ptr, 90, 130, MENU_COLOR,
-			"| - ZOOM:     Q   |");
+			"|     Q     ::  -ZOOM     |");
 	mlx_string_put(mlx->mlx_ptr, mlx->win_ptr, 90, 150, MENU_COLOR,
-			"| + HEIGHT:   R   |");
+			"|     R     ::  +HEIGHT   |");
 	mlx_string_put(mlx->mlx_ptr, mlx->win_ptr, 90, 170, MENU_COLOR,
-			"| + HEIGHT:   F   |");
+			"|     F     ::  -HEIGHT   |");
 	mlx_string_put(mlx->mlx_ptr, mlx->win_ptr, 90, 190, MENU_COLOR,
-			"| ISOMETRIC:  Z   |");
+			"|     Z     ::  ISOMETRIC |");
 	mlx_string_put(mlx->mlx_ptr, mlx->win_ptr, 90, 210, MENU_COLOR,
-			"| PARALLEL:   X   |");
+			"|     X     ::  PARALLEL  |");
 	mlx_string_put(mlx->mlx_ptr, mlx->win_ptr, 90, 230, MENU_COLOR,
-			"| EXIT:      ESC  |");
+			"|    ESC    ::  EXIT      |");
 	mlx_string_put(mlx->mlx_ptr, mlx->win_ptr, 90, 245, MENU_COLOR,
-			"-------------------");
+			"---------------------------");
 	return (SUCCESS);
 }
 
@@ -356,7 +346,7 @@ int				fdf_refresh(t_mlx *mlx, int mode)
 	mlx->img.img_ptr = mlx_new_image(mlx->mlx_ptr, WIDTH, HEIGHT);
 	mlx->img.pixel_pos = (unsigned int *)mlx_get_data_addr(mlx->img.img_ptr,
 			&(mlx->img.size_l), &(mlx->img.bpp), &(mlx->img.endian));
-	if (coordinates_setup(mlx, mlx->map) < 0)
+	if (set_points_and_draw(mlx, mlx->map) < 0)
 		return (INVAL_MEM_ERROR);
 	mlx_put_image_to_window(mlx->mlx_ptr, mlx->win_ptr, mlx->img.img_ptr, 0, 0);
 	initialize_menu(mlx);
