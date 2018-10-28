@@ -6,22 +6,28 @@
 /*   By: cbeltrao <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/10/27 22:59:53 by cbeltrao          #+#    #+#             */
-/*   Updated: 2018/10/28 19:20:13 by cbeltrao         ###   ########.fr       */
+/*   Updated: 2018/10/28 22:19:33 by cbeltrao         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <stdio.h>
-#include <errno.h>
-#include "mlx.h"
 #include "fdf.h"
-#include <math.h>
-#include <stdlib.h>
-#include <fcntl.h>
-#include "gnl/get_next_line.h"
-#include "libft/includes/libft.h"
-#include <unistd.h>
 
 int				fdf_refresh(t_mlx *mlx, int mode);
+
+int				deal_key_sub(int key, t_mlx *mlx)
+{
+	if (key == X)
+		fdf_refresh(mlx, PARALLEL);
+	else if (key == I)
+		fdf_refresh(mlx, ANGLE_INCREASE);
+	else if (key == O)
+		fdf_refresh(mlx, ANGLE_DECREASE);
+	else if (key == ESC)
+		fdf_refresh(mlx, EXIT);
+	else if (key == T)
+		fdf_refresh(mlx, MAP_RESET);
+	return (SUCCESS);
+}
 
 int				deal_key(int key, t_mlx *mlx)
 {
@@ -43,16 +49,14 @@ int				deal_key(int key, t_mlx *mlx)
 		fdf_refresh(mlx, MOVE_DOWN);
 	else if (key == Z)
 		fdf_refresh(mlx, ISOMETRIC);
-	else if (key == X)
-		fdf_refresh(mlx, PARALLEL);
-	else if (key == ESC)
-		fdf_refresh(mlx, EXIT);
+	else
+		deal_key_sub(key, mlx);
 	return (SUCCESS);
 }
 
-t_2dpoint		set_point(int x, int y, int z)
+t_point		set_point(int x, int y, int z)
 {
-	t_2dpoint temp;
+	t_point temp;
 
 	temp.x = x;
 	temp.y = y;
@@ -85,7 +89,7 @@ void			fill_pixel(unsigned int *img, int x, int y, int z)
 	}
 }
 
-void			draw_line_da_y(t_mlx *mlx, t_2dpoint p1, t_2dpoint p2)
+void			draw_line_da_y(t_mlx *mlx, t_point p1, t_point p2)
 {
 	int i;
 
@@ -111,7 +115,7 @@ void			draw_line_da_y(t_mlx *mlx, t_2dpoint p1, t_2dpoint p2)
 	fill_pixel(mlx->img.pixel_pos, mlx->bres.x, mlx->bres.y, p1.z);
 }
 
-void			draw_line_da_x(t_mlx *mlx, t_2dpoint p1, t_2dpoint p2)
+void			draw_line_da_x(t_mlx *mlx, t_point p1, t_point p2)
 {
 	int i;
 
@@ -137,14 +141,13 @@ void			draw_line_da_x(t_mlx *mlx, t_2dpoint p1, t_2dpoint p2)
 	}
 	fill_pixel(mlx->img.pixel_pos, p1.x, p1.y, p1.z);
 	fill_pixel(mlx->img.pixel_pos, p2.x, p2.y, p1.z);
-	
 }
 
-int				draw_line(t_mlx *mlx, t_2dpoint p1, t_2dpoint p2, int cam_mode)
+int				draw_line(t_mlx *mlx, t_point p1, t_point p2, int cam_mode)
 {
 	int			dominant_axis;
-	t_2dpoint	temp_p1;
-	t_2dpoint	temp_p2;
+	t_point	temp_p1;
+	t_point	temp_p2;
 
 	temp_p1 = p1;
 	temp_p2 = p2;
@@ -167,12 +170,15 @@ int				draw_line(t_mlx *mlx, t_2dpoint p1, t_2dpoint p2, int cam_mode)
 
 int				set_coords_and_draw(t_mlx *mlx, t_map *map, int i, int j)
 {
-	map->p[i][j] = set_point((900) + (map->k * (j + 1)) - (map->grid[i][j] * map->height_k)
-							+ map->move_x,
-							((0) + (map->k * (i + 1))) - (map->grid[i][j] * map->height_k)
-							+ map->move_y,
-							(map->grid[i][j] * map->height_k));
-	if ( j != 0)
+	int x;
+	int y;
+	int z;
+
+	z = map->grid[i][j] * map->height_k;
+	x = (INITIAL_X_POS) + (map->k * (j)) - z + map->move_x;
+	y = (INITIAL_Y_POS) + (map->k * (i)) - z + map->move_y;
+	map->p[i][j] = set_point(x, y, z);
+	if (j != 0)
 		draw_line(mlx, map->p[i][j - 1], map->p[i][j], map->cam);
 	if (i != 0)
 		draw_line(mlx, map->p[i - 1][j], map->p[i][j], map->cam);
@@ -187,7 +193,7 @@ int				set_points_and_draw(t_mlx *mlx, t_map *map)
 	i = 0;
 	while (i < map->dep)
 	{
-		if (!(map->p[i] = (t_2dpoint *)malloc(sizeof(t_2dpoint) * map->len)))
+		if (!(map->p[i] = (t_point *)malloc(sizeof(t_point) * map->len)))
 			return (INVAL_MEM_ERROR);
 		j = 0;
 		while (j < map->len)
@@ -264,24 +270,49 @@ int				map_parse_to_int(char *map_name, t_map *map)
 	return (SUCCESS);
 }
 
+int				map_set_default_parameters(t_map *map)
+{
+	map->k = DEFAULT_SCALE;
+	map->height_k = DEFAULT_HEIGHT_SCALE;
+	map->angle_k = DEFAULT_ANGLE_MOD;
+	map->cam = DEFAULT_CAM;
+	map->move_x = DEFAULT_MOVE;
+	map->move_y = DEFAULT_MOVE;
+	return (0);
+}
+
 int				set_map(t_mlx *mlx, char *map_name)
 {
 	t_map	*map;
 
 	if (!(map = (t_map *)malloc(sizeof(t_map))) || !map_name || !(*map_name))
 		return (INVAL_MEM_ERROR);
-	map->k = 4;
-	map->height_k = 1;
-	map->cam = ISOMETRIC;
-	map->move_x = 0;
-	map->move_y = 0;
+	map_set_default_parameters(map);
 	if (map_parse_to_int(map_name, map) < 0)
-		return (INVAL_MAP_ERROR); mlx->map = map;
-	if (!(map->p = (t_2dpoint **)malloc(sizeof(t_2dpoint *) * map->dep)))
+		return (INVAL_MAP_ERROR);
+	mlx->map = map;
+	if (!(map->p = (t_point **)malloc(sizeof(t_point *) * map->dep)))
 		return (INVAL_MEM_ERROR);
 	if (set_points_and_draw(mlx, map) < 0)
 		return (INVAL_MEM_ERROR);
 	mlx_put_image_to_window(mlx->mlx_ptr, mlx->win_ptr, mlx->img.img_ptr, 0, 0);
+	return (SUCCESS);
+}
+
+int				param_refresh_sub(t_mlx *mlx, int mode)
+{
+	if (mode == ANGLE_INCREASE)
+		mlx->map->angle_k += 0.05;
+	else if (mode == ANGLE_DECREASE)
+		mlx->map->angle_k -= 0.05;
+	else if (mode == ISOMETRIC)
+		mlx->map->cam = ISOMETRIC;
+	else if (mode == PARALLEL)
+		mlx->map->cam = PARALLEL;
+	else if (mode == MAP_RESET)
+		map_set_default_parameters(mlx->map);
+	else if (mode == EXIT)
+		exit(0);
 	return (SUCCESS);
 }
 
@@ -303,12 +334,8 @@ int				param_refresh(t_mlx *mlx, int mode)
 		mlx->map->move_y += 10;
 	else if (mode == MOVE_DOWN)
 		mlx->map->move_y -= 10;
-	else if (mode == ISOMETRIC)
-		mlx->map->cam = ISOMETRIC;
-	else if (mode == PARALLEL)
-		mlx->map->cam = PARALLEL;
-	else if (mode == EXIT)
-		exit(0);
+	else
+		param_refresh_sub(mlx, mode);
 	return (SUCCESS);
 }
 
@@ -333,8 +360,10 @@ int				initialize_menu(t_mlx *mlx)
 	mlx_string_put(mlx->mlx_ptr, mlx->win_ptr, 90, 210, MENU_COLOR,
 			"|     X     ::  PARALLEL  |");
 	mlx_string_put(mlx->mlx_ptr, mlx->win_ptr, 90, 230, MENU_COLOR,
+			"|     T     ::  RESET MAP |");
+	mlx_string_put(mlx->mlx_ptr, mlx->win_ptr, 90, 250, MENU_COLOR,
 			"|    ESC    ::  EXIT      |");
-	mlx_string_put(mlx->mlx_ptr, mlx->win_ptr, 90, 245, MENU_COLOR,
+	mlx_string_put(mlx->mlx_ptr, mlx->win_ptr, 90, 265, MENU_COLOR,
 			"---------------------------");
 	return (SUCCESS);
 }
