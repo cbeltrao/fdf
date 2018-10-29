@@ -6,11 +6,13 @@
 /*   By: cbeltrao <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/10/29 01:01:30 by cbeltrao          #+#    #+#             */
-/*   Updated: 2018/10/29 01:43:13 by cbeltrao         ###   ########.fr       */
+/*   Updated: 2018/10/29 01:54:45 by cbeltrao         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/fdf.h"
+#include "../libft/libft.h"
+#include <math.h>
 
 t_point			set_point(int x, int y, int z)
 {

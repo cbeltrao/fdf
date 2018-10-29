@@ -6,11 +6,12 @@
 /*   By: cbeltrao <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/10/29 00:40:48 by cbeltrao          #+#    #+#             */
-/*   Updated: 2018/10/29 01:44:32 by cbeltrao         ###   ########.fr       */
+/*   Updated: 2018/10/29 01:48:02 by cbeltrao         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/fdf.h"
+#include "../libft/libft.h"
 #include <mlx.h>
 
 int				menu_select_sub(t_mlx *mlx, int option)

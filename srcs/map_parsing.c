@@ -6,11 +6,12 @@
 /*   By: cbeltrao <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/10/29 01:10:52 by cbeltrao          #+#    #+#             */
-/*   Updated: 2018/10/29 01:46:34 by cbeltrao         ###   ########.fr       */
+/*   Updated: 2018/10/29 01:48:40 by cbeltrao         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/fdf.h"
+#include "../libft/libft.h"
 #include "../gnl/get_next_line.h"
 #include <fcntl.h>
 

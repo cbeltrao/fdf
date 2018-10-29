@@ -6,11 +6,12 @@
 /*   By: cbeltrao <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/10/29 01:06:05 by cbeltrao          #+#    #+#             */
-/*   Updated: 2018/10/29 01:22:56 by cbeltrao         ###   ########.fr       */
+/*   Updated: 2018/10/29 01:54:19 by cbeltrao         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/fdf.h"
+#include "../libft/libft.h"
 
 void			draw_line_da_y(t_mlx *mlx, t_point p1, t_point p2)
 {

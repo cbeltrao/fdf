@@ -6,7 +6,7 @@
 #    By: cbeltrao <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2018/08/01 13:31:36 by cbeltrao          #+#    #+#              #
-#    Updated: 2018/10/20 22:59:12 by cbeltrao         ###   ########.fr        #
+#    Updated: 2018/10/29 02:07:53 by cbeltrao         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,7 +17,7 @@ CC = gcc
 CFLAGS = -Wall -Wextra -Werror
 
 # name of executable
-MAIN = main 
+MAIN = fdf 
 
 # header files
 INCLUDES = -I ./minilibx_macos
@@ -29,7 +29,7 @@ LFLAGS = -L ./minilibx_macos
 LIBS = -lmlx
 
 # define the C source files
-SRCS = main.c libft/*.c gnl/*.c
+SRCS = srcs/main.c srcs/draw.c srcs/bresenham.c srcs/menu.c srcs/map_parsing.c $(wildcard libft/*.c) $(wildcard gnl/*.c)
 
 # define the C objects files
 OBJS = $(SRCS:.c=.o)

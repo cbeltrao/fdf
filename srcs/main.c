@@ -6,11 +6,12 @@
 /*   By: cbeltrao <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/10/27 22:59:53 by cbeltrao          #+#    #+#             */
-/*   Updated: 2018/10/29 01:44:15 by cbeltrao         ###   ########.fr       */
+/*   Updated: 2018/10/29 02:08:06 by cbeltrao         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/fdf.h"
+#include "../libft/libft.h"
 #include <mlx.h>
 
 int				map_set_default_parameters(t_map *map)

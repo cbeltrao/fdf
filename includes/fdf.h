@@ -6,14 +6,12 @@
 /*   By: cbeltrao <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/06 18:02:08 by cbeltrao          #+#    #+#             */
-/*   Updated: 2018/10/29 01:46:02 by cbeltrao         ###   ########.fr       */
+/*   Updated: 2018/10/29 01:55:30 by cbeltrao         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef FDF_H
 # define FDF_H
-# include <math.h>
-# include "../libft/libft.h"
 
 # define HEIGHT 1200
 # define WIDTH 1800
