@@ -6,18 +6,14 @@
 /*   By: cbeltrao <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/06 18:02:08 by cbeltrao          #+#    #+#             */
-/*   Updated: 2018/10/28 22:01:22 by cbeltrao         ###   ########.fr       */
+/*   Updated: 2018/10/29 01:46:02 by cbeltrao         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef FDF_H
 # define FDF_H
-# include "mlx.h"
 # include <math.h>
-# include <stdlib.h>
-# include <fcntl.h>
-# include "gnl/get_next_line.h"
-# include "libft/includes/libft.h"
+# include "../libft/libft.h"
 
 # define HEIGHT 1200
 # define WIDTH 1800
@@ -106,7 +102,7 @@ typedef	struct	s_map
 	float		k;
 	float		angle_k;
 	int			height_k;
-	t_point	**p;
+	t_point		**p;
 }				t_map;
 
 typedef	struct	s_mlx
@@ -119,5 +115,45 @@ typedef	struct	s_mlx
 	t_map		*map;
 	t_bresen	bres;
 }				t_mlx;
+
+int				fdf_new_image(t_mlx *mlx, int option);
+
+t_point			set_point(int x, int y, int z);
+
+void			fill_pixel(unsigned int *img, int x, int y, int z);
+
+void			draw_line_da_y(t_mlx *mlx, t_point p1, t_point p2);
+
+void			draw_line_da_x(t_mlx *mlx, t_point p1, t_point p2);
+
+int				bresenham_draw_line(t_mlx *mlx, t_point p1, t_point p2, int cam_option);
+
+int				set_coords_and_draw(t_mlx *mlx, t_map *map, int i, int j);
+
+int				set_points_and_draw(t_mlx *mlx, t_map *map);
+
+int				grid_add_line(t_map *map, char *line, int line_nbr);
+
+int				line_count(char *map_name);
+
+int				map_parse_to_int(char *map_name, t_map *map);
+
+int				map_set_default_parameters(t_map *map);
+
+int				set_map(t_mlx *mlx, char *map_name);
+
+int				new_image(t_mlx *mlx, int option);
+
+int				fdf_start(char *map_name);
+
+int				menu_select(t_mlx *mlx, int option);
+
+int				menu_select_sub(t_mlx *mlx, int option);
+
+int				deal_key(int key, t_mlx *mlx);
+
+int				deal_key_sub(int key, t_mlx *mlx);
+
+int				initialize_menu(t_mlx *mlx);
 
 #endif
