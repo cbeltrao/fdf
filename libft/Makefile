@@ -6,7 +6,7 @@
 #    By: cbeltrao <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2018/08/01 09:36:52 by cbeltrao          #+#    #+#              #
-#    Updated: 2018/08/01 09:36:53 by cbeltrao         ###   ########.fr        #
+#    Updated: 2018/10/29 16:06:23 by cbeltrao         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -68,7 +68,9 @@ FX=\
    ft_putchar_fd\
    ft_putstr_fd\
    ft_putendl_fd\
-   ft_putnbr_fd
+   ft_putnbr_fd\
+   get_next_line
+
 OPTIONS=-I./includes
 FLAGS=-Wall -Wextra -Werror
 

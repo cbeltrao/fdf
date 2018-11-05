@@ -1,18 +1,23 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ft_bzero.c                                         :+:      :+:    :+:   */
+/*   get_next_line.h                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ayip <marvin@42.fr>                        +#+  +:+       +#+        */
+/*   By: cbeltrao <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2017/09/18 19:17:06 by ayip              #+#    #+#             */
-/*   Updated: 2017/09/18 19:19:11 by ayip             ###   ########.fr       */
+/*   Created: 2018/08/07 15:17:01 by cbeltrao          #+#    #+#             */
+/*   Updated: 2018/10/29 15:53:02 by cbeltrao         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "libft.h"
+#ifndef GET_NEXT_LINE_H
+# define GET_NEXT_LINE_H
+# include <stdlib.h>
+# include <unistd.h>
 
-void	*ft_bzero(void *s, size_t n)
-{
-	return (ft_memset(s, 0, n));
-}
+# define BUFF_SIZE 32
+# define MAX_NUM_FILES 8192
+
+int		get_next_line(const int fd, char **line);
+
+#endif

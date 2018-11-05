@@ -5,53 +5,44 @@
 #                                                     +:+ +:+         +:+      #
 #    By: cbeltrao <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2018/08/01 13:31:36 by cbeltrao          #+#    #+#              #
-#    Updated: 2018/10/29 02:07:53 by cbeltrao         ###   ########.fr        #
+#    Created: 2018/10/29 16:20:56 by cbeltrao          #+#    #+#              #
+#    Updated: 2018/11/05 16:11:52 by cbeltrao         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-# the compiler
-CC = gcc
 
-# compiler flags:
-CFLAGS = -Wall -Wextra -Werror
+NAME = fdf
 
-# name of executable
-MAIN = fdf 
+SRCS = src/fdf_main.c src/draw.c src/bresenham.c src/menu.c src/map_parsing.c
 
-# header files
-INCLUDES = -I ./minilibx_macos
-
-# libraries path
-LFLAGS = -L ./minilibx_macos
-
-# define libraries to link into executable
-LIBS = -lmlx
-
-# define the C source files
-SRCS = srcs/main.c srcs/draw.c srcs/bresenham.c srcs/menu.c srcs/map_parsing.c $(wildcard libft/*.c) $(wildcard gnl/*.c)
-
-# define the C objects files
 OBJS = $(SRCS:.c=.o)
 
-# define frameworks to link
-FW1 = -framework OpenGL
-FW2 = -framework AppKit
+RM = rm -f
 
-.PHONY: all clean fclean
+CC = gcc
 
-all: $(MAIN)
+CFLAGS = -Wall -Wextra -Werror
 
-$(MAIN): $(OBJS)
-	@$(CC) $(CFLAGS) $(INCLUDES) -o $(MAIN) $(OBJS) $(LFLAGS) $(LIBS) $(FW1) $(FW2)
+LIBX = -L minilibx_macos -lmlx -framework OpenGL -framework AppKit
 
-.c.o:
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+LIB = -L libft -lft
+
+all: $(NAME)
+
+$(NAME): $(OBJS)
+	make -C libft
+	make -C minilibx_macos	
+	$(CC) $(CFLAGS) -o $(NAME) $(OBJS) $(LIBX) $(LIB)
 
 clean:
-	@/bin/rm -f $(OBJS)
+	$(RM) $(OBJS)
+	make -C libft clean
+	make -C minilibx_macos clean
 
 fclean: clean
-	@/bin/rm -f $(MAIN)
+	make -C libft fclean
+	$(RM) $(NAME)
 
 re: fclean all
+
+.PHONY: all clean fclean re

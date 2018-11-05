@@ -6,7 +6,7 @@
 /*   By: cbeltrao <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/10/27 22:59:53 by cbeltrao          #+#    #+#             */
-/*   Updated: 2018/10/29 02:08:06 by cbeltrao         ###   ########.fr       */
+/*   Updated: 2018/10/29 18:06:49 by cbeltrao         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,8 @@ int				set_map(t_mlx *mlx, char *map_name)
 {
 	t_map	*map;
 
-	if (!(map = (t_map *)ft_memalloc(sizeof(t_map))) || !map_name || !(*map_name))
+	if (!(map = (t_map *)ft_memalloc(sizeof(t_map))) || !map_name ||
+										!(*map_name))
 		return (INVAL_MEM_ERROR);
 	map_set_default_parameters(map);
 	if (map_parse_to_int(map_name, map) < 0)
@@ -78,7 +79,7 @@ int				fdf_start(char *map_name)
 
 int				main(int argc, char **argv)
 {
-	if (argc != 2)
+	if (argc != 2 || (check_file_extension(argv[1])) == INVAL_MAP_ERROR)
 	{
 		ft_putstr("Usage ./fdf <file>\n");
 		return (-1);

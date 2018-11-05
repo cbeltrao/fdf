@@ -6,7 +6,7 @@
 /*   By: cbeltrao <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/06 18:02:08 by cbeltrao          #+#    #+#             */
-/*   Updated: 2018/10/29 01:55:30 by cbeltrao         ###   ########.fr       */
+/*   Updated: 2018/10/29 18:07:26 by cbeltrao         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -124,13 +124,16 @@ void			draw_line_da_y(t_mlx *mlx, t_point p1, t_point p2);
 
 void			draw_line_da_x(t_mlx *mlx, t_point p1, t_point p2);
 
-int				bresenham_draw_line(t_mlx *mlx, t_point p1, t_point p2, int cam_option);
+int				bresenham_draw_line(t_mlx *mlx, t_point p1,
+									t_point p2, int cam_option);
 
 int				set_coords_and_draw(t_mlx *mlx, t_map *map, int i, int j);
 
 int				set_points_and_draw(t_mlx *mlx, t_map *map);
 
 int				grid_add_line(t_map *map, char *line, int line_nbr);
+
+int				check_file_extension(char *map_name);
 
 int				line_count(char *map_name);
 

@@ -6,7 +6,7 @@
 /*   By: cbeltrao <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/10/29 01:01:30 by cbeltrao          #+#    #+#             */
-/*   Updated: 2018/10/29 01:54:45 by cbeltrao         ###   ########.fr       */
+/*   Updated: 2018/11/05 18:02:52 by cbeltrao         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,6 +74,8 @@ int				set_points_and_draw(t_mlx *mlx, t_map *map)
 	i = 0;
 	while (i < map->dep)
 	{
+		if (map->p[i])
+			free(map->p[i]);
 		if (!(map->p[i] = (t_point *)ft_memalloc(sizeof(t_point) * map->len)))
 			return (INVAL_MEM_ERROR);
 		j = 0;

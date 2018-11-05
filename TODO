@@ -1,7 +1,0 @@
-create menu - done
-separate in multiple .c files -- done
-fix makefile -- libraries and such
-test_perso/too_high gets stuck
-analyse return codes
-entender e explicar bresenham
-entender mlx_get_data_addr

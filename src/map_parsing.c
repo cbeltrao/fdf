@@ -6,14 +6,31 @@
 /*   By: cbeltrao <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/10/29 01:10:52 by cbeltrao          #+#    #+#             */
-/*   Updated: 2018/10/29 01:48:40 by cbeltrao         ###   ########.fr       */
+/*   Updated: 2018/11/05 18:03:08 by cbeltrao         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/fdf.h"
 #include "../libft/libft.h"
-#include "../gnl/get_next_line.h"
 #include <fcntl.h>
+
+int				check_file_extension(char *map_name)
+{
+	int		len;
+	int		i;
+	char	*temp;
+
+	len = ft_strlen(map_name);
+	i = len;
+	temp = ft_strsub(map_name, len - 4, 4);
+	if ((ft_strcmp(temp, ".fdf")) != 0)
+	{
+		free(temp);
+		return (INVAL_MAP_ERROR);
+	}
+	free(temp);
+	return (SUCCESS);
+}
 
 int				grid_add_line(t_map *map, char *line, int line_nbr)
 {
@@ -49,8 +66,12 @@ int				line_count(char *map_name)
 	lines = 0;
 	if ((fd = open(map_name, O_RDONLY)) < 0)
 		return (INVAL_MAP_ERROR);
+	line = NULL;
 	while (get_next_line(fd, &line))
+	{
+		free(line);
 		lines++;
+	}
 	close(fd);
 	return (lines);
 }
@@ -72,6 +93,7 @@ int				map_parse_to_int(char *map_name, t_map *map)
 	{
 		if ((grid_add_line(map, line, line_nbr)) < 0)
 			return (INVAL_MAP_ERROR);
+		free(line);
 		line_nbr++;
 	}
 	close(fd);
